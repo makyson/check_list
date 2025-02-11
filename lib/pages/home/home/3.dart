@@ -1,0 +1,1 @@
+export '1.dart' if (dart.library.io) '2.dart';

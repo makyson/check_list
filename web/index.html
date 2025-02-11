@@ -1,0 +1,124 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="untitled">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Gesso integral</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+   body {
+      padding-top: 50px; /* Ajuste conforme a altura da barra de notificação */
+      margin: 0;
+    }
+    #notification-bar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #323232;
+      color: white;
+      padding: 10px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      z-index: 1000;
+      text-align: center;
+      height: 50px; /* Definindo uma altura fixa para a barra */
+    }
+    .notification-button {
+      margin: 0 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+    .update {
+      background-color: #4CAF50;
+    }
+
+  </style>
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = {{flutter_service_worker_version}};
+  </script>
+
+  <script type="text/javascript">
+    window.flutterWebRenderer = "html";
+  </script>
+
+</head>
+<body>
+<div id="notification-bar">
+  <span>Atualização disponível! Clique em atualizar para aplicar a nova versão.</span>
+  <button class="notification-button update">Atualizar</button>
+</div>
+<script src="flutter.js" defer></script>
+<script src="flutter_bootstrap.js" async></script>
+<script type="text/javascript">
+    let socket;
+
+    function setupWebSocket() {
+      let localVersion = "3.31.9+40";
+
+      socket = new WebSocket('wss://7j614wps-3301.brs.devtunnels.ms');
+
+      socket.onopen = function(event) {
+        console.log("Conexão WebSocket aberta.");
+        socket.send(JSON.stringify({ type: 'check_version', version: localVersion }));
+      };
+
+      socket.onmessage = function(event) {
+        console.log("Mensagem recebida:", event.data);
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'update_required') {
+          if (data.serverVersion !== localVersion) {
+            console.log("Atualização disponível. Versão atual:", localVersion, "Nova versão:", data.serverVersion);
+            const notificationBar = document.getElementById('notification-bar');
+            notificationBar.style.display = 'block';
+            const updateBtn = document.querySelector('.update');
+
+            updateBtn.onclick = function() {
+
+            window.location.href = "/#";
+              window.location.reload();
+
+            };
+
+            cancelBtn.onclick = function() {
+              notificationBar.style.display = 'none';
+            };
+          }
+        }
+      };
+
+      socket.onerror = function(event) {
+        console.error("Erro WebSocket:", event);
+      };
+
+      socket.onclose = function(event) {
+        console.log("Conexão WebSocket fechada. Tentando reconectar...");
+        setTimeout(setupWebSocket, 5000);
+      };
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', setupWebSocket);
+    }
+  </script>
+
+</body>
+</html>

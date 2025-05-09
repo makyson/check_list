@@ -1,24 +1,15 @@
+import 'package:flutter/material.dart';
 
-import '/flutter_flow/flutter_flow_icon_button.dart';
-import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import '/flutter_flow/form_field_controller.dart';
 import 'abrirsevico.dart' show DetalyCopy3Widget;
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-
 import 'model.dart';
 
 class DetalyCopy3Model extends FlutterFlowModel<DetalyCopy3Widget> {
   ///  Local state fields for this page.
 
   bool? edita;
-  String? tipoinput; //horimetro - km
+  String? tipoinput = "Produção";
   String? tiporetrabalho;
   int? funcionario;
   int? supervisor;
@@ -34,11 +25,16 @@ class DetalyCopy3Model extends FlutterFlowModel<DetalyCopy3Widget> {
 
   Map<String, dynamic>? selectedPerson;
 
-
   ///  State fields for stateful widgets in this page.
 
   final unfocusNode = FocusNode();
   final formKey = GlobalKey<FormState>();
+
+  // State field(s) for TextField widget.
+  FocusNode? textFieldFocusNodeRealizado;
+  TextEditingController? textControllerRealizado;
+  String? Function(BuildContext, String?)? textControllerRealizadoValidator;
+  // State field(s) for TextField widget.
 
   // State field(s) for TextField widget.
   FocusNode? textFieldFocusNode1;
@@ -75,10 +71,6 @@ class DetalyCopy3Model extends FlutterFlowModel<DetalyCopy3Widget> {
   TextEditingController? textController7;
   String? Function(BuildContext, String?)? textController7Validator;
 
-
-
-
-
   /// Initialization and disposal methods.
 
   @override
@@ -89,6 +81,9 @@ class DetalyCopy3Model extends FlutterFlowModel<DetalyCopy3Widget> {
     unfocusNode.dispose();
     textFieldFocusNode1?.dispose();
     textController1?.dispose();
+
+    textFieldFocusNodeRealizado?.dispose();
+    textControllerRealizado?.dispose();
 
     textFieldFocusNode2?.dispose();
     textController2?.dispose();
@@ -109,7 +104,7 @@ class DetalyCopy3Model extends FlutterFlowModel<DetalyCopy3Widget> {
     textController7?.dispose();
   }
 
-/// Action blocks are added here.
+  /// Action blocks are added here.
 
-/// Additional helper methods are added here.
+  /// Additional helper methods are added here.
 }

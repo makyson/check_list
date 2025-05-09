@@ -14,7 +14,7 @@ import 'package:mime_type/mime_type.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled/api.dart';
 import 'package:untitled/backend/api_requests/api_calls.dart';
-import 'package:uuid/uuid.dart'; // para gerar IDs únicos
+import 'package:uuid/uuid.dart';
 
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -43,12 +43,16 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
   final ScrollController controller = ScrollController();
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final ChecklistStorage checklistStorage = ChecklistStorage();
-
+  List<Map<String, dynamic>> mecanicos = [];
+  final ValueNotifier<String?> _initialTitle = ValueNotifier<String?>(null);
   final childWidgetKey1 = GlobalKey<FormState>();
   final childWidgetKey2 = GlobalKey<FormState>();
   final childWidgetKey3 = GlobalKey<FormState>();
   final childWidgetKey4 = GlobalKey<FormState>();
 
+  final ValueNotifier<Map<String, dynamic>?> _dropdownController =
+      ValueNotifier<Map<String, dynamic>?>(null);
+  String? mecanicoid;
   List<bool> isSelected = [false, false];
   String controlId = '';
 
@@ -60,6 +64,8 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
     _loadInitialLancamento();
 
     _model = createModel(context, () => DetalyCopy3Model());
+    _model.textControllerRealizado ??= TextEditingController();
+    _model.textFieldFocusNodeRealizado ??= FocusNode();
     _model.textController5 ??= TextEditingController();
     _model.textFieldFocusNode5 ??= FocusNode();
     _model.textController6 ??= TextEditingController();
@@ -69,6 +75,151 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
     controlId = Uuid().v4();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+
+    fetchMecanicos();
+  }
+
+  Future<void> fetchMecanicos() async {
+    final response =
+        await http.get(Uri.parse('${apilogin()}/checklist/mecanicos'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+
+      setState(() {
+        // Mapeia os dados recebidos para a lista de mecânicos
+        mecanicos = data
+            .map((item) => {
+                  'id': item['id'].toString(),
+                  'nome': item['nome'],
+                  'funcao': item['funcao']
+                })
+            .toList();
+      });
+    } else {
+      throw Exception('Falha ao carregar os mecânicos');
+    }
+  }
+
+  void _abrirCadastroNovoMecanico() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        TextEditingController nomeController = TextEditingController();
+        TextEditingController funcaoController = TextEditingController();
+        bool ativo = true;
+        bool funcionario = true;
+        return AlertDialog(
+          title: Text('Cadastrar Novo Responsável pela inspeção'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nomeController,
+                decoration:
+                    InputDecoration(hintText: 'Responsável pela inspeção'),
+              ),
+              TextField(
+                controller: funcaoController,
+                decoration: InputDecoration(hintText: 'observação'),
+              ),
+              SwitchListTile(
+                title: Text('É Funcionário?'),
+                value: funcionario,
+                onChanged: (bool value) {
+                  funcionario = value;
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o modal sem salvar
+              },
+            ),
+            TextButton(
+              child: Text('Salvar'),
+              onPressed: () async {
+                if (nomeController.text.isNotEmpty) {
+                  try {
+                    Map<String, dynamic> novoMecanicoId =
+                        await adicionarNovoMecanico(
+                      nomeController.text,
+                      funcaoController.text,
+                      ativo,
+                      funcionario,
+                    );
+
+                    setState(() {
+                      mecanicos.add({
+                        'id': novoMecanicoId['id'],
+                        'nome': novoMecanicoId['nome'],
+                        'funcao': novoMecanicoId['funcao'] ?? 'funcionario',
+                      });
+
+                      _dropdownController.value = {
+                        'id': novoMecanicoId['id'],
+                        'nome': novoMecanicoId['nome'],
+                        'funcao': novoMecanicoId['funcao'] ?? 'funcionario',
+                      };
+
+                      _initialTitle.value = novoMecanicoId['nome'];
+                    });
+
+                    // Atualiza o título inicial no Dropdown
+
+                    Navigator.of(context).pop(); // Fecha o modal
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    print(e);
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> adicionarNovoMecanico(
+      String nome, String funcao, bool ativo, bool funcionario) async {
+    funcao = funcao.replaceAll(RegExp(r'\s+'), ' ').trim() == ''
+        ? 'funcionario'
+        : funcao;
+    //nome tudo menusculo depois deixa só todas as iniciais maiusculas
+    nome = nome
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim()
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+    final response = await http.post(
+      Uri.parse('${apilogin()}/checklist/mecanicos'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'nome': nome,
+        'funcao': funcao,
+        'ativo': ativo,
+        'funcionario': funcionario
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return {
+        'id': data['id'],
+        'nome': nome,
+        'funcao': funcao,
+        'ativo': ativo,
+        'funcionario': funcionario,
+      };
+    } else {
+      throw Exception('Falha ao adicionar o mecânico');
+    }
   }
 
   void _loadInitialLancamento() {
@@ -120,6 +271,7 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
   Future<void> submitChecklist() async {
     ApiCallResponse response = await Post_checklistCall.call(
       name: AppStateNotifier.instance.user!.userData!.name,
+      mecanicoid: mecanicoid != null ? int.parse(mecanicoid!) : null,
       checklistItem: _model.checklistItems,
       equipamento: _model.equipamento,
       tipoinput: _model.tipoinput,
@@ -456,8 +608,69 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
                                           },
                                           lista: equipamento,
                                         ),
+                                        Padding(
+                                          padding:
+                                              EdgeInsetsDirectional.fromSTEB(
+                                                  0, 2, 0, 0),
+                                          child: Text(
+                                            'Responsável pela Inspeção *',
+                                            style: FlutterFlowTheme.of(context)
+                                                .bodyMedium
+                                                .override(
+                                                  fontFamily:
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumFamily,
+                                                  color: FlutterFlowTheme.of(
+                                                          context)
+                                                      .secondaryText,
+                                                  fontSize: 16,
+                                                  useGoogleFonts: GoogleFonts
+                                                          .asMap()
+                                                      .containsKey(
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodyMediumFamily),
+                                                ),
+                                          ),
+                                        ),
+                                        CustomDropdownFormField(
+                                          items: mecanicos,
+                                          initialTitleNotifier: _initialTitle,
+                                          dropdownMaxHeight: 300,
+                                          showAddNewItem: true,
+                                          onAddNewItem: () {
+                                            _abrirCadastroNovoMecanico();
+                                          },
+                                          titleKey: 'nome',
+                                          subtitleKey: 'funcao',
+                                          onChanged: (value) {
+                                            mecanicoid =
+                                                value?['id'].toString();
+                                          },
+                                          decoration: InputDecoration(
+                                            labelText: '',
+                                            hintText:
+                                                'Selecione quem realizou a inspeção para continuar...',
+                                            hintStyle: TextStyle(
+                                              fontSize: 17,
+                                              height: 0,
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(8)),
+                                            ),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null) {
+                                              return 'Por favor, Selecione quem realizou a inspeção para continuar!';
+                                            }
+                                            return null;
+                                          },
+                                        ),
                                       ].divide(SizedBox(height: 2)),
                                     ),
+                                    /*
                                     Column(
                                       mainAxisSize: MainAxisSize.max,
                                       crossAxisAlignment:
@@ -632,6 +845,8 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
                                         ),
                                       ].divide(SizedBox(height: 2)),
                                     ),
+
+                                    */
                                     Column(
                                       mainAxisSize: MainAxisSize.max,
                                       crossAxisAlignment:
@@ -884,9 +1099,10 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
                         child: Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(0, 5, 8, 0),
                           child: FFButtonWidget(
-                            onPressed: () {
+                            onPressed: () async {
                               _model.formKey.currentState?.validate();
                               if (_model.checklistItems.length > 0) {
+                                /*
                                 if (!_allNokItemsHaveFiles(
                                     _model.checklistItems)) {
                                   ScaffoldMessenger.of(context)
@@ -910,6 +1126,9 @@ class _DetalyCopy3WidgetState extends State<DetalyCopy3Widget> {
                                 } else {
                                   submitChecklist();
                                 }
+
+                                */
+                                await submitChecklist();
                               } else {
                                 final snackBar = SnackBar(
                                   backgroundColor: Colors.transparent,
@@ -1262,7 +1481,7 @@ class _SuggestionsTextFieldStateCARD extends State<SuggestionsTextFieldCARD> {
                 child: _selectedItem.imagem_caminho != null &&
                         _selectedItem.imagem_caminho != ''
                     ? Image.network(
-                        apidevprod() +
+                        apidevimagem() +
                             widget.urlarquivoimagem.toString() +
                             _selectedItem.imagem_caminho,
                         fit: BoxFit.contain,
@@ -1935,6 +2154,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                                         questionario[index]
                                                             .pickedFiles
                                                             .isEmpty) {
+                                                      /*
                                                       ScaffoldMessenger.of(
                                                               context)
                                                           .showSnackBar(
@@ -1946,6 +2166,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                                               Colors.red,
                                                         ),
                                                       );
+                                                      */
                                                     }
                                                   });
                                                 },
@@ -2061,11 +2282,6 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                       questionario[index].boxvalue == "2")
                                     Column(
                                       children: [
-                                        Text(
-                                          'Por favor, anexe um arquivo!',
-                                          style: TextStyle(
-                                              color: Colors.red, fontSize: 12),
-                                        ),
                                         Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceEvenly,
@@ -2216,6 +2432,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                   }
 
                                   if (!allNokItemsHaveFiles) {
+                                    /*
                                     showDialog(
                                       context: context,
                                       builder: (context) {
@@ -2235,13 +2452,17 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                       },
                                     );
 
-                                    if (indexToScroll != -1) {
-                                      scrollController.animateTo(
-                                        indexToScroll * 100.0,
-                                        duration: Duration(seconds: 1),
-                                        curve: Curves.easeInOut,
-                                      );
-                                    }
+                                    */
+
+                                    setState(() {
+                                      if (currentStep <
+                                          widget.checklistItems!.length - 1) {
+                                        currentStep++;
+                                        Navigator.pop(context);
+                                      } else {
+                                        Navigator.pop(context);
+                                      }
+                                    });
                                   } else {
                                     setState(() {
                                       if (currentStep <
@@ -2384,6 +2605,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       onPressed: () {
                         setState(() {
                           if (currentStep > 0) {
+                            /*
                             if (!allNokItemsHaveFiles) {
                               ScaffoldMessenger.of(context).clearSnackBars();
                               final snackBar = SnackBar(
@@ -2404,7 +2626,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               return;
                             } else {
                               currentStep--;
-                            }
+                            }*/
+                            currentStep--;
                             allNokItemsHaveFiles = _allNokItemsHaveFiles(widget
                                 .checklistItems![currentStep].questionario);
                           }
@@ -2412,19 +2635,28 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       },
                       child: Icon(
                         Icons.arrow_back,
+                        /*
                         color: currentStep > 0
                             ? allNokItemsHaveFiles
                                 ? null
                                 : Colors.grey
                             : null,
+                        */
                       ),
                       style: ElevatedButton.styleFrom(
+                          /*
                         backgroundColor: currentStep > 0
                             ? allNokItemsHaveFiles
                                 ? null
                                 : Colors.grey.shade400
                             : null,
-                      ),
+                        */
+                          /*   backgroundColor:
+                            allNokItemsHaveFiles ? null : Colors.grey.shade400,
+
+                      */
+
+                          ),
                     ),
                     Text(
                       '${currentStep + 1} de ${widget.checklistItems!.length}',
@@ -2435,6 +2667,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       onPressed: () {
                         setState(() {
                           if (currentStep < widget.checklistItems!.length - 1) {
+                            /*
                             if (!allNokItemsHaveFiles) {
                               ScaffoldMessenger.of(context).clearSnackBars();
                               final snackBar = SnackBar(
@@ -2456,6 +2689,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                             } else {
                               currentStep++;
                             }
+
+                             */
+                            currentStep++;
                             allNokItemsHaveFiles = _allNokItemsHaveFiles(widget
                                 .checklistItems![currentStep].questionario);
                           }
@@ -2463,12 +2699,15 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                       },
                       child: Icon(
                         Icons.arrow_forward,
-                        color: allNokItemsHaveFiles ? null : Colors.grey,
+                        /*  color: allNokItemsHaveFiles ? null : Colors.grey, */
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
+                          /*   backgroundColor:
                             allNokItemsHaveFiles ? null : Colors.grey.shade400,
-                      ),
+
+                      */
+
+                          ),
                     ),
                   ],
                 ),
@@ -2512,6 +2751,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                           setState(() {
                             if (currentStep <
                                 widget.checklistItems!.length - 1) {
+                              /*
                               if (!allNokItemsHaveFiles) {
                                 ScaffoldMessenger.of(context).clearSnackBars();
                                 final snackBar = SnackBar(
@@ -2533,6 +2773,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               } else {
                                 currentStep++;
                               }
+                              */
+                              currentStep++;
                               allNokItemsHaveFiles = _allNokItemsHaveFiles(
                                   widget.checklistItems![currentStep]
                                       .questionario);
@@ -2543,9 +2785,19 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                             }
                           });
                         },
+                        /*
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               allNokItemsHaveFiles ? Colors.green : Colors.grey,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          minimumSize: Size(150, 40),
+                          padding: EdgeInsets.all(16),
+                        ),
+                        */
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -3156,6 +3408,7 @@ class _DraftDetailWidgetState extends State<DraftDetailWidget> {
     ApiCallResponse response = await Post_checklistCall.call(
       name: "outros",
       checklistItem: _model.checklistItems,
+      mecanicoid: null,
       equipamento: _model.equipamento,
       tipoinput: _model.tipoinput,
       urgente: _model.isRunning,
@@ -3958,6 +4211,8 @@ class _DraftDetailWidgetState extends State<DraftDetailWidget> {
                                     _model.formKey.currentState?.validate();
                                     if (_model.checklistItems.length > 0) {
                                       submitChecklist();
+                                      print(
+                                          'Checklist enviado com sucesso. ID: $controlId');
                                     } else {
                                       final snackBar = SnackBar(
                                         backgroundColor: Colors.transparent,

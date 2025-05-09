@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:untitled/flutter_flow/flutter_flow_util.dart';
 
@@ -13,16 +14,20 @@ import '../../service/dropdonw.dart';
 import '../../service/model.dart';
 import '3.dart';
 
-class ListarDefeitosWidget extends StatefulWidget {
+class ListarFuncionarioWidget extends StatefulWidget {
   final String maquinaid;
 
-  ListarDefeitosWidget({required this.maquinaid, Key? key}) : super(key: key);
+  ListarFuncionarioWidget({required this.maquinaid, Key? key})
+      : super(key: key);
 
   @override
-  _ListarDefeitosWidgetState createState() => _ListarDefeitosWidgetState();
+  _ListarFuncionarioWidgetState createState() =>
+      _ListarFuncionarioWidgetState();
 }
 
-class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
+List<Map<String, dynamic>> equipamento = [];
+
+class _ListarFuncionarioWidgetState extends State<ListarFuncionarioWidget>
     with SingleTickerProviderStateMixin {
   List<dynamic> defeitosPendentes = [];
   List<dynamic> defeitosAguardando = [];
@@ -48,6 +53,7 @@ class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
   @override
   void initState() {
     super.initState();
+    buscarequipamento();
     _tabController = TabController(length: 3, vsync: this);
     searchController.addListener(onSearchChanged);
 
@@ -80,6 +86,16 @@ class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
       keyform.currentState?.reset();
       Navigator.of(context).pop(); // Fecha o modal e retorna a observação
     }
+  }
+
+  Map<String, dynamic>? getNomeUrlinid(String id) {
+    final equip = equipamento.firstWhere(
+      (item) => item['id'] == int.tryParse(id),
+      orElse: () => {},
+    );
+
+
+    return equip;
   }
 
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -198,7 +214,8 @@ class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
       (item) => item['id'] == id,
       orElse: () => {'nome': 'Mecânico não encontrado'},
     );
-
+    print(mecanicos);
+    print(id);
     return mecanico['nome']!;
   }
 
@@ -659,9 +676,23 @@ class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
     );
   }
 
+  Future<void> buscarequipamento() async {
+    final response =
+        await http.get(Uri.parse(apilogin() + '/list/listequipamento'));
+
+    if (response.statusCode == 200) {
+      final informacoes = json.decode(response.body);
+      setState(() {
+        equipamento = List<Map<String, dynamic>>.from(informacoes);
+      });
+    } else {
+      throw Exception('Falha ao carregar dados');
+    }
+  }
+
   Future<void> fetchDefeitos() async {
     final response = await http.get(Uri.parse(
-        '${apilogin()}/checklist/listar-defeitos/${widget.maquinaid}'));
+        '${apilogin()}/checklist/listar-funcionario/${widget.maquinaid}'));
     if (response.statusCode == 200) {
       List<dynamic> todosDefeitos = json.decode(response.body);
       setState(() {
@@ -1295,8 +1326,80 @@ class _ListarDefeitosWidgetState extends State<ListarDefeitosWidget>
               child: Column(
                 children: [
                   ListTile(
-                    title: Text(
-                        '${defeito['question']} - ${defeito['data'].substring(8, 10)}/${defeito['data'].substring(5, 7)}/${defeito['data'].substring(0, 4)}'),
+                    title: Column(
+                      children: [
+                        Padding(
+                          padding:
+                              const EdgeInsetsDirectional.fromSTEB(6, 6, 2, 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2),
+                                  child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        '${apidevimagem()}imagem/imagemequipamento/${getNomeUrlinid('${defeito['maquinaid']}')?['imagem_caminho']}',
+                                        width: 32,
+                                        height: 32,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Icon(
+                                            Icons.train,
+                                            color: FlutterFlowTheme.of(context)
+                                                .secondaryText,
+                                            size: 24,
+                                          );
+                                        },
+                                      )),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                      12, 0, 8, 0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${getNomeUrlinid('${defeito['maquinaid']}')?['nome']}',
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodyMedium
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodyMediumFamily,
+                                              fontSize: 16.0,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts: GoogleFonts
+                                                      .asMap()
+                                                  .containsKey(
+                                                      FlutterFlowTheme.of(
+                                                              context)
+                                                          .bodyMediumFamily),
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                            '${defeito['question']} - ${defeito['data'].substring(8, 10)}/${defeito['data'].substring(5, 7)}/${defeito['data'].substring(0, 4)}'),
+                      ],
+                    ),
                     subtitle: defeito['status'] == 'pendente'
                         ? Padding(
                             padding: EdgeInsets.only(top: 10),

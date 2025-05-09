@@ -1,13 +1,12 @@
-
 String apilogin() {
   return versaoteste() == true
-      ? 'http://localhost:3301'
+      ? 'https://7j614wps-3301.brs.devtunnels.ms'
       : 'https://7j614wps-3301.brs.devtunnels.ms'; //'https://api.manutecaoqr.com.br:8082';
 }
 
 String apitestes(String par) {
   return versaoteste() == true
-      ? 'http://localhost:8082'
+      ? 'https://7j614wps-8082.brs.devtunnels.ms'
       : 'https://7j614wps-8082.brs.devtunnels.ms/$par'; //'https://api.manutecaoqr.com.br:8082';
 }
 
@@ -20,11 +19,11 @@ String apidevimagemnovo1() {
 }
 
 String apidev() {
-  return 'https://7j614wps-8082.brs.devtunnels.ms';
+  return 'https://7j614wps-3301.brs.devtunnels.ms';
 }
 
 String apidevprod() {
-  return 'https://7j614wps-8082.brs.devtunnels.ms/';
+  return 'https://7j614wps-3301.brs.devtunnels.ms/';
 }
 
 bool versaoteste() {

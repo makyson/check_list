@@ -416,7 +416,7 @@ class CustomDropdownFormField extends FormField<Map<String, dynamic>> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item[titleKey]?.toString().toUpperCase() ?? '',
+                        item[titleKey]?.toString() ?? '',
                         style: TextStyle(
                           fontSize: 16.5,
                           height: 0.8,

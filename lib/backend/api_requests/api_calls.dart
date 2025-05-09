@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import '/flutter_flow/flutter_flow_util.dart';
 import '../../api.dart';
 import '../../pages/service/model.dart';
-import '/flutter_flow/flutter_flow_util.dart';
 import 'api_manager.dart';
 
 export 'api_manager.dart' show ApiCallResponse;
@@ -54,22 +54,18 @@ class LoginCall {
           .toList();
 }
 
-
-
 class Buscar_checklistCall {
   static Future<ApiCallResponse> call({
-
     String? id,
   }) async {
-
     return ApiManager.instance.makeApiCall(
       callName: 'BuscarChecklist',
       apiUrl: '${apilogin()}/checklist/buscar',
-      callType: ApiCallType.GET,  // Use GET for fetching data
+      callType: ApiCallType.GET, // Use GET for fetching data
       headers: {'Content-Type': 'application/json'}, // Optional for GET
-      params: {'id': id},  // Optional for GET
+      params: {'id': id}, // Optional for GET
       returnBody: true,
-      decodeUtf8: true,  // Decode response as UTF-8
+      decodeUtf8: true, // Decode response as UTF-8
       cache: false,
     );
   }
@@ -88,55 +84,56 @@ class Buscar_checklistCall {
   }
 }
 
-
 class Post_checklistCall {
   static Future<ApiCallResponse> call({
     required String name,
     required List<ChecklistItem> checklistItem,
+    required int? mecanicoid,
     required int? equipamento,
     required String? tipoinput,
     required bool urgente,
     required String? datavalue,
   }) async {
-
-
-
-
     var data = {
       'nome': name,
       'maquinaid': equipamento,
       'setor': tipoinput,
+      'mecanicoid': mecanicoid,
       'data': datavalue,
       'urgente': urgente,
-      'checklistItems': checklistItem.map((item) {
-        var filteredQuestions = item.questionario
-            .where((question) => question != null && question.boxvalue == "2")
-            .map((question) {
-          return {
-            'question': question.question,
-            'id': question.id,
-            'boxvalue': question.boxvalue,
-            'isoutro': question.isoutro,
-            'pickedFiles': question.pickedFiles.map((file) {
+      'checklistItems': checklistItem
+          .map((item) {
+            var filteredQuestions = item.questionario
+                .where(
+                    (question) => question != null && question.boxvalue == "2")
+                .map((question) {
               return {
-                'type': file.type,
-                'file': file.file,
-                'bytes': base64Encode(file.bytes),
-                'description': file.description,
+                'question': question.question,
+                'id': question.id,
+                'boxvalue': question.boxvalue,
+                'isoutro': question.isoutro,
+                'pickedFiles': question.pickedFiles.map((file) {
+                  return {
+                    'type': file.type,
+                    'file': file.file,
+                    'bytes': base64Encode(file.bytes),
+                    'description': file.description,
+                  };
+                }).toList(),
               };
-            }).toList(),
-          };
-        }).toList();
+            }).toList();
 
-        // Retornar apenas se houver questões válidas
-        if (filteredQuestions.isNotEmpty) {
-          return {
-            'questionario': filteredQuestions,
-          };
-        } else {
-          return null; // Ignorar itens sem questões válidas
-        }
-      }).where((item) => item != null).toList(), // Remover itens nulos do checklistItems
+            // Retornar apenas se houver questões válidas
+            if (filteredQuestions.isNotEmpty) {
+              return {
+                'questionario': filteredQuestions,
+              };
+            } else {
+              return null; // Ignorar itens sem questões válidas
+            }
+          })
+          .where((item) => item != null)
+          .toList(), // Remover itens nulos do checklistItems
     };
 
     final ffApiRequestBody = jsonEncode(data);
@@ -161,19 +158,15 @@ class Post_checklistCall {
       ));
 }
 
-
-
-
 class Buscar_operadores {
   static Future<ApiCallResponse> call() async {
-
     return ApiManager.instance.makeApiCall(
       callName: 'Buscaroperadores',
       apiUrl: '${apilogin()}/list/listoperador',
-      callType: ApiCallType.GET,  // Use GET for fetching data
+      callType: ApiCallType.GET, // Use GET for fetching data
       headers: {'Content-Type': 'application/json'}, // Optional for GET
       returnBody: true,
-      decodeUtf8: true,  // Decode response as UTF-8
+      decodeUtf8: true, // Decode response as UTF-8
       cache: false,
     );
   }
@@ -192,22 +185,18 @@ class Buscar_operadores {
   }
 }
 
-
-
 class Buscar_checklistCalloperadores {
   static Future<ApiCallResponse> call({
-
     String? id,
   }) async {
-
     return ApiManager.instance.makeApiCall(
       callName: 'BuscarChecklist',
       apiUrl: '${apilogin()}/checklistoperador/buscarall',
-      callType: ApiCallType.GET,  // Use GET for fetching data
+      callType: ApiCallType.GET, // Use GET for fetching data
       headers: {'Content-Type': 'application/json'}, // Optional for GET
-      params: {'id': id},  // Optional for GET
+      params: {'id': id}, // Optional for GET
       returnBody: true,
-      decodeUtf8: true,  // Decode response as UTF-8
+      decodeUtf8: true, // Decode response as UTF-8
       cache: false,
     );
   }
@@ -226,7 +215,6 @@ class Buscar_checklistCalloperadores {
   }
 }
 
-
 class Post_operadores {
   static Future<ApiCallResponse> call({
     required String name,
@@ -235,42 +223,44 @@ class Post_operadores {
     required int? equipamento,
     required String? datavalue,
   }) async {
-
-
     var data = {
       'nome': name,
-      'operadorid':operadorid,
+      'operadorid': operadorid,
       'maquinaid': equipamento,
       'data': datavalue,
-      'checklistItems': checklistItem.map((item) {
-        var filteredQuestions = item.questionario
-            .where((question) => question != null && question.boxvalue != "0")
-            .map((question) {
-          return {
-            'question': question.question,
-            'id': question.id,
-            'boxvalue': question.boxvalue,
-            'isoutro': question.isoutro,
-            'pickedFiles': question.pickedFiles.map((file) {
+      'checklistItems': checklistItem
+          .map((item) {
+            var filteredQuestions = item.questionario
+                .where(
+                    (question) => question != null && question.boxvalue != "0")
+                .map((question) {
               return {
-                'type': file.type,
-                'file': file.file,
-                'bytes': base64Encode(file.bytes),
-                'description': file.description,
+                'question': question.question,
+                'id': question.id,
+                'boxvalue': question.boxvalue,
+                'isoutro': question.isoutro,
+                'pickedFiles': question.pickedFiles.map((file) {
+                  return {
+                    'type': file.type,
+                    'file': file.file,
+                    'bytes': base64Encode(file.bytes),
+                    'description': file.description,
+                  };
+                }).toList(),
               };
-            }).toList(),
-          };
-        }).toList();
+            }).toList();
 
-        // Retornar apenas se houver questões válidas
-        if (filteredQuestions.isNotEmpty) {
-          return {
-            'questionario': filteredQuestions,
-          };
-        } else {
-          return null; // Ignorar itens sem questões válidas
-        }
-      }).where((item) => item != null).toList(), // Remover itens nulos do checklistItems
+            // Retornar apenas se houver questões válidas
+            if (filteredQuestions.isNotEmpty) {
+              return {
+                'questionario': filteredQuestions,
+              };
+            } else {
+              return null; // Ignorar itens sem questões válidas
+            }
+          })
+          .where((item) => item != null)
+          .toList(), // Remover itens nulos do checklistItems
     };
 
     final ffApiRequestBody = jsonEncode(data);
@@ -290,8 +280,7 @@ class Post_operadores {
   }
 
   static String? id(dynamic response) => castToType<String>(getJsonField(
-    response,
-    r'''$.id''',
-  ));
+        response,
+        r'''$.id''',
+      ));
 }
-

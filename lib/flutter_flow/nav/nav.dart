@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/pages/home/home/dereoperador.dart';
+import 'package:untitled/pages/home/home/funcionario.dart';
+import 'package:untitled/pages/homefuncionario/HomeOperador_widget.dart';
 import 'package:untitled/pages/homeoperador/HomeOperador_widget.dart';
+import 'package:untitled/pages/qr_code_pdf/index.dart';
 
 import '/auth/custom_auth/custom_auth_user_provider.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -79,7 +82,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
       refreshListenable: appStateNotifier,
       errorBuilder: (context, state) {
         if (appStateNotifier.loggedIn) {
-          context.go('/home');
+          Future.microtask(() {
+            context.go('/home');
+          });
         } else {
           return LoginWidget();
         }
@@ -92,9 +97,13 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             path: '/',
             builder: (context, _) {
               if (appStateNotifier.loggedIn) {
-                context.go('/home');
+                Future.microtask(() {
+                  context.go('/home');
+                });
               } else {
-                return LoginWidget();
+                Future.microtask(() {
+                  context.go('/login');
+                });
               }
 
               return Container();
@@ -140,12 +149,21 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               maquinaid: params.getParam('id', ParamType.String)),
         ),
         FFRoute(
+          name: 'ListarDetalyFuncionario',
+          path: '/ListarDetalyFuncionario',
+          //  ListarDefeitosWidget()
+          builder: (context, params) => ListarFuncionarioWidget(
+              maquinaid: params.getParam('id', ParamType.String)),
+        ),
+        FFRoute(
             name: 'home',
             path: '/home',
             builder: (context, params) {
               int _currentIndex = 0;
               final List<Widget> _pages = [
                 Container(child: HomeWidget()),
+                HomeOperadorWidget(),
+                PreencherFichaScreen()
               ];
 
               return Scaffold(
@@ -163,6 +181,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                 context.go('/home');
                               } else if (index == 1) {
                                 context.go('/home/settings');
+                              } else if (index == 2) {
+                                context.go('/home/qr');
                               }
                             },
                             labelType: NavigationRailLabelType
@@ -174,7 +194,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                               ),
                               NavigationRailDestination(
                                 icon: Icon(Icons.person),
-                                label: Text('Profile'),
+                                label: Text('Funcionario'),
+                              ),
+                              NavigationRailDestination(
+                                icon: Icon(Icons.qr_code),
+                                label: Text('qr'),
                               ),
                             ],
                           ),
@@ -193,6 +217,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                 context.go('/home');
                               } else if (index == 1) {
                                 context.go('/home/settings');
+                              } else if (index == 2) {
+                                context.go('/home/qr');
                               }
                             },
                             items: [
@@ -202,7 +228,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                               ),
                               BottomNavigationBarItem(
                                 icon: Icon(Icons.person),
-                                label: 'Profile',
+                                label: 'Funcionario',
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(Icons.qr_code),
+                                label: 'qr',
                               ),
                             ],
                           ),
@@ -215,18 +245,19 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
             },
             routes: [
               FFRoute(
-                name: 'settings',
-                path: 'settings',
+                name: 'qr',
+                path: 'qr',
                 // requirepermissions: ['produtividade','admin'],
                 builder: (context, params) {
-                  int _currentIndex = 1;
+                  int _currentIndex = 2;
 
                   List<String> userPermissions =
                       appStateNotifier.user?.userData?.permissions ?? [];
 
                   final List<Widget> _pages = [
-                    Container(child: Text('Home')),
-                    HomeOperadorWidget()
+                    Container(child: HomeWidget()),
+                    HomeOperadorWidget(),
+                    PreencherFichaScreen()
                   ];
 
                   return Scaffold(
@@ -244,6 +275,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                     context.go('/home');
                                   } else if (index == 1) {
                                     context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
                                   }
                                 },
                                 labelType: NavigationRailLabelType
@@ -255,7 +288,11 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                   ),
                                   NavigationRailDestination(
                                     icon: Icon(Icons.person),
-                                    label: Text('Profile'),
+                                    label: Text('Funcionario'),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.qr_code),
+                                    label: Text('qr'),
                                   ),
                                 ],
                               ),
@@ -274,6 +311,8 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                     context.go('/home');
                                   } else if (index == 1) {
                                     context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
                                   }
                                 },
                                 items: [
@@ -283,7 +322,199 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
                                   ),
                                   BottomNavigationBarItem(
                                     icon: Icon(Icons.person),
-                                    label: 'Profile',
+                                    label: 'Funcionario',
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.qr_code),
+                                    label: 'qr',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+              FFRoute(
+                name: 'operado',
+                path: 'operrado',
+                // requirepermissions: ['produtividade','admin'],
+                builder: (context, params) {
+                  int _currentIndex = 1;
+
+                  List<String> userPermissions =
+                      appStateNotifier.user?.userData?.permissions ?? [];
+
+                  final List<Widget> _pages = [
+                    Container(child: HomeWidget()),
+                    HomeOperadorWidget(),
+                    PreencherFichaScreen()
+                  ];
+
+                  return Scaffold(
+                    body: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 600) {
+                          // Ajuste o valor conforme necessário
+                          // Layout para desktop/tablet
+                          return Row(
+                            children: [
+                              NavigationRail(
+                                selectedIndex: _currentIndex,
+                                onDestinationSelected: (index) {
+                                  if (index == 0) {
+                                    context.go('/home');
+                                  } else if (index == 1) {
+                                    context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
+                                  }
+                                },
+                                labelType: NavigationRailLabelType
+                                    .all, // Mostra os rótulos sempre
+                                destinations: [
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.home),
+                                    label: Text('Home'),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.person),
+                                    label: Text('Funcionario'),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.qr_code),
+                                    label: Text('qr'),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: _pages[_currentIndex]),
+                            ],
+                          );
+                        } else {
+                          // Layout para dispositivos móveis
+                          return Column(
+                            children: [
+                              Expanded(child: _pages[_currentIndex]),
+                              BottomNavigationBar(
+                                currentIndex: _currentIndex,
+                                onTap: (index) {
+                                  if (index == 0) {
+                                    context.go('/home');
+                                  } else if (index == 1) {
+                                    context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
+                                  }
+                                },
+                                items: [
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.home),
+                                    label: 'Home',
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.person),
+                                    label: 'Funcionario',
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.qr_code),
+                                    label: 'qr',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+              FFRoute(
+                name: 'settings',
+                path: 'settings',
+                // requirepermissions: ['produtividade','admin'],
+                builder: (context, params) {
+                  int _currentIndex = 1;
+
+                  List<String> userPermissions =
+                      appStateNotifier.user?.userData?.permissions ?? [];
+
+                  final List<Widget> _pages = [
+                    Container(child: HomeWidget()),
+                    HomeFuncionarioWidget(),
+                    PreencherFichaScreen()
+                  ];
+
+                  return Scaffold(
+                    body: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 600) {
+                          // Ajuste o valor conforme necessário
+                          // Layout para desktop/tablet
+                          return Row(
+                            children: [
+                              NavigationRail(
+                                selectedIndex: _currentIndex,
+                                onDestinationSelected: (index) {
+                                  if (index == 0) {
+                                    context.go('/home');
+                                  } else if (index == 1) {
+                                    context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
+                                  }
+                                },
+                                labelType: NavigationRailLabelType
+                                    .all, // Mostra os rótulos sempre
+                                destinations: [
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.home),
+                                    label: Text('Home'),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.person),
+                                    label: Text('Funcionario'),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(Icons.qr_code),
+                                    label: Text('qr'),
+                                  ),
+                                ],
+                              ),
+                              Expanded(child: _pages[_currentIndex]),
+                            ],
+                          );
+                        } else {
+                          // Layout para dispositivos móveis
+                          return Column(
+                            children: [
+                              Expanded(child: _pages[_currentIndex]),
+                              BottomNavigationBar(
+                                currentIndex: _currentIndex,
+                                onTap: (index) {
+                                  if (index == 0) {
+                                    context.go('/home');
+                                  } else if (index == 1) {
+                                    context.go('/home/settings');
+                                  } else if (index == 2) {
+                                    context.go('/home/qr');
+                                  }
+                                },
+                                items: [
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.home),
+                                    label: 'Home',
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.person),
+                                    label: 'Funcionario',
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.qr_code),
+                                    label: 'qr',
                                   ),
                                 ],
                               ),

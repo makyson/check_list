@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="$FLUTTER_BASE_HREF">
+  <base href="/web/">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
@@ -65,13 +65,13 @@
   <span>Atualização disponível! Clique em atualizar para aplicar a nova versão.</span>
   <button class="notification-button update">Atualizar</button>
 </div>
-<script src="flutter.js" defer></script>
-<script src="flutter_bootstrap.js" async></script>
+<script src="flutter.js?v=20241222_110784" defer></script>
+<script src="flutter_bootstrap.js??v=20241222_110784" async></script>
 <script type="text/javascript">
     let socket;
 
     function setupWebSocket() {
-      let localVersion = "3.31.9+40";
+      let localVersion = "3.31.9+46";
 
       socket = new WebSocket('wss://7j614wps-3301.brs.devtunnels.ms');
 
